@@ -1,4 +1,4 @@
-  // --- Workspace Switcher (managed by io.github.woogy7.workspaces; re-run install-menu to refresh) ---
+  // --- Workspace Switcher (managed by io.github.woogy7.workspaces; re-run `switcher-config menu install` to refresh) ---
   // Setup > Workspace Switcher: every setting of the switcher as an Omarchy menu.
   // Rows re-open their submenu after acting so the ✓ marks update in place.
   "setup.workspace-switcher": {"icon":"󰕰","label":"Workspace Switcher","aliases":["workspace-switcher","switcher"]},

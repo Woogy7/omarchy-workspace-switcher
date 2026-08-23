@@ -19,7 +19,7 @@ wallpaper.
 
 ```bash
 omarchy plugin add https://github.com/Woogy7/omarchy-workspace-switcher.git --enable
-~/.config/omarchy/plugins/io.github.woogy7.workspaces/install-menu   # Setup › Workspace Switcher menu
+~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config menu install   # Setup › Workspace Switcher menu
 ```
 
 Then add the keybindings — the plugin is an overlay, so it needs them. Append
@@ -43,7 +43,7 @@ Quickshell build with `ScreencopyView` (the one Omarchy ships).
 
 ```bash
 ~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config bar off   # drop the bar icon
-~/.config/omarchy/plugins/io.github.woogy7.workspaces/install-menu --remove     # drop the Setup menu block
+~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config menu remove   # drop the Setup menu block
 omarchy plugin remove io.github.woogy7.workspaces
 ```
 
@@ -52,7 +52,7 @@ reload Hyprland; the plugin's entry in `shell.json` goes away with the plugin.
 Nothing else is written anywhere: settings live in `~/.config/omarchy/shell.json`
 (only on your explicit `set`/menu actions), the menu block sits between marker
 comments in `~/.config/omarchy/extensions/omarchy-menu.jsonc` (only when you run
-`install-menu`), and the keybindings are pasted by you.
+`switcher-config menu install`), and the keybindings are pasted by you.
 
 ## Use
 
@@ -93,8 +93,8 @@ a gesture.
 `omarchy menu summon setup.workspace-switcher`) exposes everything below with ✓
 marks that update in place — show in bar, layout, tap action, preview size,
 gap, monitors, workspaces shown, look toggles, selected emphasis, animations,
-reset. Install it with `install-menu` (idempotent; `install-menu --remove`
-takes it out again). It merges a marker-delimited block into
+reset. Install it with `switcher-config menu install` (idempotent;
+`switcher-config menu remove` takes it out again). It merges a marker-delimited block into
 `~/.config/omarchy/extensions/omarchy-menu.jsonc` and never touches your other
 entries.
 
@@ -113,6 +113,7 @@ switcher-config get layout
 switcher-config set layout carousel  # numbers/booleans are typed automatically
 switcher-config toggle showLabels
 switcher-config bar on|off|toggle|status
+switcher-config menu install|remove|status
 switcher-config reset
 ```
 

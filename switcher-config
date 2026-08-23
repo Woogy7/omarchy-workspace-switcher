@@ -12,13 +12,26 @@ the file, so changes apply live.
   switcher-config reset                drop every setting
   switcher-config bar [on|off|toggle|status]  show/hide the bar icon (adds/removes the
                                        bar.layout entry; default section: right)
+  switcher-config menu [install|remove|status]
+                                       add/remove the Setup > Workspace Switcher block in
+                                       ~/.config/omarchy/extensions/omarchy-menu.jsonc
+                                       (marker-delimited; your other entries are untouched)
 """
 import json
 import os
+import re
 import sys
 
 PLUGIN_ID = "io.github.woogy7.workspaces"
-CONFIG = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "omarchy", "shell.json")
+XDG_CONFIG = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+CONFIG = os.path.join(XDG_CONFIG, "omarchy", "shell.json")
+HERE = os.path.dirname(os.path.realpath(__file__))
+MENU_SNIPPET = os.path.join(HERE, "omarchy-menu.jsonc")
+MENU_TARGET = os.path.join(XDG_CONFIG, "omarchy", "extensions", "omarchy-menu.jsonc")
+MENU_START = "// --- Workspace Switcher (managed by io.github.woogy7.workspaces"
+MENU_END = "// --- end Workspace Switcher ---"
+MENU_EMPTY = ("{\n  // Extend the Quickshell Omarchy menu with JSONC. IDs are object keys; dotted\n"
+              "  // ids imply hierarchy. See the Omarchy defaults for the full field list.\n}\n")
 
 DEFAULTS = {
     "layout": "ribbon",
@@ -100,6 +113,49 @@ def fmt(v):
     if isinstance(v, float) and v == int(v):
         return str(v)  # keep 1.0 as 1.0 so menu checks stay stable
     return str(v)
+
+
+def menu_block_present(text):
+    return text.find(MENU_START) != -1
+
+
+def menu_apply(remove):
+    """Install/refresh (or remove) the marker-delimited menu block."""
+    block = "" if remove else open(MENU_SNIPPET).read().rstrip("\n") + "\n"
+    os.makedirs(os.path.dirname(MENU_TARGET), exist_ok=True)
+    text = open(MENU_TARGET).read() if os.path.exists(MENU_TARGET) else MENU_EMPTY
+
+    s = text.find(MENU_START)
+    if s != -1:
+        s = text.rfind("\n", 0, s) + 1   # from the start of the marker line
+        e = text.find(MENU_END, s)
+        if e == -1:
+            die(f"{MENU_TARGET}: found start marker but no end marker; fix by hand")
+        e = text.find("\n", e)
+        e = len(text) if e == -1 else e + 1
+        if remove and s > 1 and text[s - 1] == "\n" and text[s - 2] == "\n":
+            s -= 1   # eat the blank line we added before the block
+        text = text[:s] + block + text[e:]
+    elif not remove:
+        m = None
+        for m in re.finditer(r"\}\s*$", text):
+            pass
+        if not m:
+            die(f"{MENU_TARGET}: could not find the closing brace to insert before")
+        head = text[:m.start()].rstrip("\n") + "\n"
+        stripped = head.rstrip()
+        if stripped.endswith("}") and not stripped.endswith("},"):
+            head = stripped + ",\n"   # JSONC allows trailing commas
+        text = head + "\n" + block + "}\n"
+    else:
+        print("menu block not present; nothing to remove")
+        return
+
+    tmp = MENU_TARGET + ".tmp"
+    with open(tmp, "w") as f:
+        f.write(text)
+    os.replace(tmp, MENU_TARGET)
+    print(("removed from " if remove else "installed into ") + MENU_TARGET)
 
 
 def main(argv):
@@ -193,6 +249,17 @@ def main(argv):
             print("bar icon: off")
             return 0
         die("usage: switcher-config bar [on|off|toggle|status]")
+
+    if cmd == "menu":
+        mode = argv[2] if len(argv) > 2 else "status"
+        if mode == "status":
+            text = open(MENU_TARGET).read() if os.path.exists(MENU_TARGET) else ""
+            print("installed" if menu_block_present(text) else "not installed")
+            return 0
+        if mode in ("install", "remove"):
+            menu_apply(mode == "remove")
+            return 0
+        die("usage: switcher-config menu [install|remove|status]")
 
     if cmd == "reset":
         e = entry(cfg)
