@@ -7,6 +7,8 @@ as Omarchy's own theme/background picker. Two layouts — a **ribbon** that
 keeps every workspace on screen, or a **carousel** that keeps the selected
 one in the middle.
 
+<p align="center"><img src="preview.png" alt="Workspace Switcher — carousel layout" width="800"></p>
+
 Previews are genuinely live. Each card composites the workspace's windows at
 their real geometry with Quickshell's `ScreencopyView` (hyprland-toplevel-export),
 so even workspaces you can't see show their actual window contents — no
