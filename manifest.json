@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.woogy7.workspaces",
+  "name": "Workspace Switcher",
+  "version": "0.2.0",
+  "author": "Woogy7",
+  "license": "MIT",
+  "description": "Alt-tab for workspaces: a calm ribbon or carousel of live workspace previews. Hold Super, tap Tab to cycle, release to switch.",
+  "homepage": "https://github.com/Woogy7/omarchy-workspace-switcher",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Ribbon.qml"
+  }
+}
