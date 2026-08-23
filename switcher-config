@@ -1,0 +1,176 @@
+#!/usr/bin/env python3
+"""Read/write Workspace Switcher settings in ~/.config/omarchy/shell.json.
+
+Settings live inline on the plugin's entry in `plugins[]`; omarchy-shell watches
+the file, so changes apply live.
+
+  switcher-config get <key>            print the effective value (default if unset)
+  switcher-config set <key> <value>    set (numbers/booleans are typed automatically)
+  switcher-config toggle <key>         flip a boolean
+  switcher-config unset <key>          drop the key (back to default)
+  switcher-config show                 print effective settings as JSON
+  switcher-config reset                drop every setting
+"""
+import json
+import os
+import sys
+
+PLUGIN_ID = "io.github.woogy7.workspaces"
+CONFIG = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "omarchy", "shell.json")
+
+DEFAULTS = {
+    "layout": "ribbon",
+    "previewWidth": 320,
+    "minPreviewWidth": 200,
+    "gap": 28,
+    "monitors": "all",
+    "minWorkspaces": 5,
+    "maxWorkspaces": 10,
+    "showWallpaper": True,
+    "showLabels": True,
+    "showHints": True,
+    "hoverSelects": True,
+    "tapAction": "browse",
+    "animations": True,
+    "animationDuration": 160,
+    "fadeDuration": 140,
+    "selectedScale": 1.0,
+    "unselectedScale": 1.0,
+    "unselectedOpacity": 1.0,
+}
+
+
+def die(msg, code=1):
+    print(msg, file=sys.stderr)
+    sys.exit(code)
+
+
+def load():
+    try:
+        with open(CONFIG) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"version": 1, "plugins": []}
+    except json.JSONDecodeError as e:
+        die(f"{CONFIG}: {e}")
+
+
+def save(cfg):
+    tmp = CONFIG + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(cfg, f, indent=2)
+        f.write("\n")
+    os.replace(tmp, CONFIG)
+
+
+def entry(cfg, create=False):
+    plugins = cfg.setdefault("plugins", [])
+    for e in plugins:
+        if isinstance(e, dict) and e.get("id") == PLUGIN_ID:
+            return e
+    if not create:
+        return None
+    e = {"id": PLUGIN_ID}
+    plugins.append(e)
+    return e
+
+
+def parse(value, key):
+    default = DEFAULTS.get(key)
+    v = value.strip()
+    low = v.lower()
+    if isinstance(default, bool) or low in ("true", "false", "on", "off", "yes", "no"):
+        return low in ("true", "on", "yes", "1")
+    if isinstance(default, (int, float)) or default is None:
+        try:
+            return int(v)
+        except ValueError:
+            try:
+                return float(v)
+            except ValueError:
+                pass
+    return v
+
+
+def fmt(v):
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, float) and v == int(v):
+        return str(v)  # keep 1.0 as 1.0 so menu checks stay stable
+    return str(v)
+
+
+def main(argv):
+    if len(argv) < 2 or argv[1] in ("-h", "--help", "help"):
+        print(__doc__.strip())
+        return 0
+    cmd = argv[1]
+    cfg = load()
+
+    if cmd == "show":
+        e = entry(cfg) or {}
+        eff = dict(DEFAULTS)
+        eff.update({k: v for k, v in e.items() if k != "id"})
+        print(json.dumps(eff, indent=2))
+        return 0
+
+    if cmd == "get":
+        if len(argv) != 3:
+            die("usage: switcher-config get <key>")
+        key = argv[2]
+        e = entry(cfg) or {}
+        if key in e:
+            print(fmt(e[key]))
+        elif key in DEFAULTS:
+            print(fmt(DEFAULTS[key]))
+        else:
+            die(f"unknown key: {key}")
+        return 0
+
+    if cmd == "set":
+        if len(argv) != 4:
+            die("usage: switcher-config set <key> <value>")
+        key, raw = argv[2], argv[3]
+        if key not in DEFAULTS:
+            die(f"unknown key: {key} (known: {', '.join(sorted(DEFAULTS))})")
+        e = entry(cfg, create=True)
+        e[key] = parse(raw, key)
+        save(cfg)
+        print(f"{key} = {fmt(e[key])}")
+        return 0
+
+    if cmd == "toggle":
+        if len(argv) != 3:
+            die("usage: switcher-config toggle <key>")
+        key = argv[2]
+        if not isinstance(DEFAULTS.get(key), bool):
+            die(f"not a boolean key: {key}")
+        e = entry(cfg, create=True)
+        current = e.get(key, DEFAULTS[key])
+        e[key] = not (current is True or str(current).lower() == "true")
+        save(cfg)
+        print(f"{key} = {fmt(e[key])}")
+        return 0
+
+    if cmd == "unset":
+        if len(argv) != 3:
+            die("usage: switcher-config unset <key>")
+        e = entry(cfg)
+        if e and argv[2] in e:
+            del e[argv[2]]
+            save(cfg)
+        return 0
+
+    if cmd == "reset":
+        e = entry(cfg)
+        if e:
+            for k in [k for k in e if k != "id"]:
+                del e[k]
+            save(cfg)
+        return 0
+
+    die(f"unknown command: {cmd}")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

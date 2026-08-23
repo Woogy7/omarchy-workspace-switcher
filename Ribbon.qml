@@ -39,6 +39,7 @@ Item {
   property real pendingCommitAt: 0
   property real openedAt: 0
   property int cycleCount: 0
+  property string holdModifier: "super"   // name shown in the hint; from payload "modifier"
 
   readonly property string pluginId: manifest && manifest.id ? String(manifest.id) : "io.github.woogy7.workspaces"
   readonly property string stateHome: Quickshell.env("HOME") + "/.local/state"
@@ -191,6 +192,7 @@ Item {
       try { args = JSON.parse(payloadJson) || {} } catch (e) { args = {} }
     }
     var action = String(args.action || "")
+    if (args.modifier) root.holdModifier = String(args.modifier).toLowerCase()
     var step = (action === "next" || action === "open-next") ? 1
              : (action === "prev" || action === "open-prev") ? -1 : 0
     var hold = action !== "" && action !== "commit"
@@ -696,8 +698,8 @@ Item {
         anchors.topMargin: Style.space(18)
         text: root.holdMode
             ? (root.tapAction === "browse" && root.cycleCount === 0
-                ? "tab cycle   release super to browse   esc cancel"
-                : "tab cycle   release super to switch   esc cancel")
+                ? "tab cycle   release " + root.holdModifier + " to browse   esc cancel"
+                : "tab cycle   release " + root.holdModifier + " to switch   esc cancel")
             : "\u2190 \u2192 select   \u21B5 switch   1\u20139 jump   esc close"
         color: Util.alpha(root.foreground, 0.4)
         font.family: root.fontFamily

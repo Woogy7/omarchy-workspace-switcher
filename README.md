@@ -17,37 +17,38 @@ wallpaper.
 
 ```bash
 omarchy plugin add https://github.com/Woogy7/omarchy-workspace-switcher.git --enable
+~/.config/omarchy/plugins/io.github.woogy7.workspaces/install-menu   # Setup › Workspace Switcher menu
 ```
 
-Then add the keybinding — the plugin is an overlay, so it needs one. Append
+Then add the keybindings — the plugin is an overlay, so it needs them. Append
 [`bindings.example.lua`](bindings.example.lua) to `~/.config/hypr/bindings.lua`
-(Omarchy ≥ 4.0 Lua config) and reload Hyprland. It replaces the default
-`Super+Tab` / `Super+Shift+Tab` (next / previous workspace); set
-`"tapAction": "switch"` if you want a quick tap to keep doing exactly that.
-Prefer another key? Change the two `o.bind` lines.
+(Omarchy ≥ 4.0 Lua config) and reload Hyprland. Out of the box it gives you:
 
-Requirements: Omarchy 4.x (omarchy-shell), Hyprland with the Lua config
-(for `hl.timer` / `hl.is_key_down`, used to detect the `Super` release), and
-a Quickshell build with `ScreencopyView` (the one Omarchy ships).
+| Keys                    | Does |
+|-------------------------|------|
+| `Super+Tab`             | opens the switcher as a picker: arrows / hover to select, `Enter` or click to switch, `Esc` to close |
+| `Alt+Tab` (hold)        | alt-tab style: opens with the next workspace pre-selected; keep `Alt` held and tap `Tab` / `Shift+Tab` to cycle (wraps); **release `Alt` to switch**; `Esc` cancels |
+
+Both replace Omarchy defaults (`Super+Tab` next workspace, `Alt+Tab` cycle
+windows). Set `hold_mod = "SUPER"` in the snippet if you'd rather hold Super,
+and drop the picker bind. The modifier release is detected compositor-side
+(`hl.is_key_down` polled by an `hl.timer`), so there is no client-side guessing.
+
+Requirements: Omarchy 4.x (omarchy-shell), Hyprland with the Lua config, and a
+Quickshell build with `ScreencopyView` (the one Omarchy ships).
 
 ## Use
 
-**Hold-to-switch (the bind above):** `Super+Tab` opens with the *next*
-workspace pre-selected. Keep `Super` held, tap `Tab` / `Shift+Tab` to cycle
-(wraps around), **release `Super` to switch**. `Esc` cancels.
+**Hold-to-switch (`Alt+Tab`):** what a *lone* tap does (press, release without
+cycling further) is the `tapAction` setting:
 
-What a *lone* tap does (press `Super+Tab`, release without cycling further)
-is up to you — `tapAction`:
+- `"browse"` (default): the switcher stays open as a picker — arrows, hover,
+  `Enter` to switch, `Esc` to close. `Alt+Tab` again while open re-enters hold
+  mode (release switches).
+- `"switch"`: pure alt-tab — a tap jumps to the next workspace immediately (a
+  fast tap doesn't even show the UI).
 
-- `"browse"` (default): the switcher stays open as a plain picker — arrows,
-  hover, `Enter` to switch, `Esc` to close. Pressing `Super+Tab` again while
-  it is open re-enters hold mode (release switches).
-- `"switch"`: pure alt-tab — a tap jumps to the next workspace immediately
-  (and a fast tap doesn't even show the UI), exactly like the Omarchy default
-  `Super+Tab` it replaces.
-
-**Browse mode:** `omarchy-shell shell toggle io.github.woogy7.workspaces`
-opens it as a plain picker:
+**Picker (`Super+Tab`, or `omarchy-shell shell toggle io.github.woogy7.workspaces`):**
 
 | Key / input          | Action                                   |
 |----------------------|------------------------------------------|
@@ -70,6 +71,24 @@ is what the keybinding uses; it also lets you wire up other modifiers or
 a gesture.
 
 ## Settings
+
+**Setup › Workspace Switcher** in the Omarchy menu (`Super+Space`, or
+`omarchy menu summon setup.workspace-switcher`) exposes everything below with ✓
+marks that update in place — layout, tap action, preview size, gap, monitors,
+workspaces shown, look toggles, selected emphasis, animations, reset. Install it
+with `install-menu` (idempotent; `install-menu --remove` takes it out again). It
+merges a marker-delimited block into `~/.config/omarchy/extensions/omarchy-menu.jsonc`
+and never touches your other entries.
+
+Under the hood the menu calls `switcher-config`, which you can use directly:
+
+```bash
+switcher-config show                 # effective settings
+switcher-config get layout
+switcher-config set layout carousel  # numbers/booleans are typed automatically
+switcher-config toggle showLabels
+switcher-config reset
+```
 
 Settings live **inline on the plugin's entry** in `~/.config/omarchy/shell.json`
 (`plugins[]`). The file is watched, so edits apply live — no restart.
@@ -97,7 +116,7 @@ Settings live **inline on the plugin's entry** in `~/.config/omarchy/shell.json`
 | `showLabels`        | `true`     | number + last window title under each card |
 | `showHints`         | `true`     | faint key hint line under the strip |
 | `hoverSelects`      | `true`     | moving the mouse over a card selects it (carousel does not recentre on hover) |
-| `tapAction`         | `"browse"` | lone `Super+Tab` tap: `"browse"` keeps the switcher open, `"switch"` jumps to the next workspace |
+| `tapAction`         | `"browse"` | lone tap of the hold key: `"browse"` keeps the switcher open, `"switch"` jumps to the next workspace |
 | `animations`        | `true`     | master switch; `false` makes everything instant |
 | `animationDuration` | `160`      | ms for selection/scroll/scale motion |
 | `fadeDuration`      | `140`      | ms for the open/close fade |
