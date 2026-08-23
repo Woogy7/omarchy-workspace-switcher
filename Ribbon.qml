@@ -192,7 +192,11 @@ Item {
       try { args = JSON.parse(payloadJson) || {} } catch (e) { args = {} }
     }
     var action = String(args.action || "")
-    if (args.modifier) root.holdModifier = String(args.modifier).toLowerCase()
+    if (args.modifier) {
+      // IPC-supplied and only ever displayed; restrict to known modifier names.
+      var mod = String(args.modifier).toLowerCase()
+      root.holdModifier = ["super", "alt", "ctrl", "shift", "meta", "hyper"].indexOf(mod) !== -1 ? mod : "super"
+    }
     var step = (action === "next" || action === "open-next") ? 1
              : (action === "prev" || action === "open-prev") ? -1 : 0
     var hold = action !== "" && action !== "commit"
@@ -602,7 +606,8 @@ Item {
                       border.color: Util.alpha(root.foreground, 0.25)
 
                       Text {
-                        anchors.centerIn: parent
+                                                  textFormat: Text.PlainText
+anchors.centerIn: parent
                         width: parent.width - Style.space(8)
                         horizontalAlignment: Text.AlignHCenter
                         elide: Text.ElideRight
@@ -668,7 +673,8 @@ Item {
               }
 
               Text {
-                text: String(card.workspaceId)
+                                  textFormat: Text.PlainText
+text: String(card.workspaceId)
                 color: card.selected ? root.foreground : Util.alpha(root.foreground, 0.7)
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
@@ -677,7 +683,8 @@ Item {
             }
 
             Text {
-              width: parent.width
+                              textFormat: Text.PlainText
+width: parent.width
               horizontalAlignment: Text.AlignHCenter
               elide: Text.ElideMiddle
               text: card.toplevels.length === 0 ? "Empty"
@@ -692,7 +699,8 @@ Item {
       }
 
       Text {
-        visible: root.showHints
+                  textFormat: Text.PlainText
+visible: root.showHints
         anchors.horizontalCenter: ribbon.horizontalCenter
         anchors.top: ribbon.bottom
         anchors.topMargin: Style.space(18)
