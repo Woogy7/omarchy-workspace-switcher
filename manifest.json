@@ -8,10 +8,34 @@
   "description": "Alt-tab for workspaces: a calm ribbon or carousel of live workspace previews. Hold Super, tap Tab to cycle, release to switch.",
   "homepage": "https://github.com/Woogy7/omarchy-workspace-switcher",
   "kinds": [
-    "overlay"
+    "overlay",
+    "bar-widget"
   ],
   "keepLoaded": true,
   "entryPoints": {
-    "overlay": "Ribbon.qml"
+    "overlay": "Ribbon.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Workspace Switcher",
+    "description": "Bar icon: click for the Workspace Switcher settings menu, right-click to open the switcher",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "click": "menu"
+    },
+    "schema": [
+      {
+        "key": "click",
+        "type": "enum",
+        "label": "Left click opens",
+        "options": [
+          "menu",
+          "switcher"
+        ],
+        "defaultValue": "menu"
+      }
+    ]
   }
 }

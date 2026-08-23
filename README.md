@@ -74,11 +74,19 @@ a gesture.
 
 **Setup › Workspace Switcher** in the Omarchy menu (`Super+Space`, or
 `omarchy menu summon setup.workspace-switcher`) exposes everything below with ✓
-marks that update in place — layout, tap action, preview size, gap, monitors,
-workspaces shown, look toggles, selected emphasis, animations, reset. Install it
-with `install-menu` (idempotent; `install-menu --remove` takes it out again). It
-merges a marker-delimited block into `~/.config/omarchy/extensions/omarchy-menu.jsonc`
-and never touches your other entries.
+marks that update in place — show in bar, layout, tap action, preview size,
+gap, monitors, workspaces shown, look toggles, selected emphasis, animations,
+reset. Install it with `install-menu` (idempotent; `install-menu --remove`
+takes it out again). It merges a marker-delimited block into
+`~/.config/omarchy/extensions/omarchy-menu.jsonc` and never touches your other
+entries.
+
+**Bar icon.** The plugin also ships a bar widget (a 󰕰 chip): left click opens
+that settings menu, right click opens the switcher (swap them with the
+widget's `click` setting in the bar settings UI). Turn it on/off with the
+menu's **Show in bar** row or `switcher-config bar on|off` — it lands next to
+the Vitals chip if you have it, else at the end of the right section; move it
+with `omarchy bar move`.
 
 Under the hood the menu calls `switcher-config`, which you can use directly:
 
@@ -87,6 +95,7 @@ switcher-config show                 # effective settings
 switcher-config get layout
 switcher-config set layout carousel  # numbers/booleans are typed automatically
 switcher-config toggle showLabels
+switcher-config bar on|off|toggle|status
 switcher-config reset
 ```
 

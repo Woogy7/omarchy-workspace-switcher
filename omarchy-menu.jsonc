@@ -3,6 +3,7 @@
   // Rows re-open their submenu after acting so the ✓ marks update in place.
   "setup.workspace-switcher": {"icon":"󰕰","label":"Workspace Switcher","aliases":["workspace-switcher","switcher"]},
   "setup.workspace-switcher.open": {"icon":"󰕰","label":"Open switcher","action":"omarchy-shell shell toggle io.github.woogy7.workspaces"},
+  "setup.workspace-switcher.bar": {"icon":"󰍜","label":"Show in bar","checked":"[[ \"$(~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config bar status)\" == \"on\" ]]","action":"~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config bar toggle; omarchy menu summon setup.workspace-switcher"},
 
   "setup.workspace-switcher.layout": {"icon":"󰕮","label":"Layout","title":"Layout"},
   "setup.workspace-switcher.layout.ribbon": {"icon":"󰕭","label":"Ribbon","checked":"[[ \"$(~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config get layout)\" == \"ribbon\" ]]","action":"~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config set layout ribbon; omarchy menu summon setup.workspace-switcher.layout"},

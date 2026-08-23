@@ -10,6 +10,8 @@ the file, so changes apply live.
   switcher-config unset <key>          drop the key (back to default)
   switcher-config show                 print effective settings as JSON
   switcher-config reset                drop every setting
+  switcher-config bar [on|off|toggle|status]  show/hide the bar icon (adds/removes the
+                                       bar.layout entry; default section: right)
 """
 import json
 import os
@@ -160,6 +162,37 @@ def main(argv):
             del e[argv[2]]
             save(cfg)
         return 0
+
+    if cmd == "bar":
+        mode = argv[2] if len(argv) > 2 else "status"
+        bar = cfg.setdefault("bar", {})
+        layout = bar.setdefault("layout", {})
+        for sec in ("left", "center", "right"):
+            layout.setdefault(sec, [])
+        present = [(sec, i) for sec in ("left", "center", "right")
+                   for i, e in enumerate(layout[sec]) if isinstance(e, dict) and e.get("id") == PLUGIN_ID]
+        if mode == "status":
+            print("on" if present else "off")
+            return 0
+        if mode == "toggle":
+            mode = "off" if present else "on"
+        if mode == "on":
+            if not present:
+                right = layout["right"]
+                # Sit next to the Vitals chip when it is there, else at the end.
+                after = [i for i, e in enumerate(right) if isinstance(e, dict) and e.get("id") == "io.github.woogy7.vitals"]
+                right.insert(after[0] + 1 if after else len(right), {"id": PLUGIN_ID})
+                save(cfg)
+            print("bar icon: on")
+            return 0
+        if mode == "off":
+            for sec, i in sorted(present, key=lambda x: -x[1]):
+                del layout[sec][i]
+            if present:
+                save(cfg)
+            print("bar icon: off")
+            return 0
+        die("usage: switcher-config bar [on|off|toggle|status]")
 
     if cmd == "reset":
         e = entry(cfg)
