@@ -39,6 +39,21 @@ and drop the picker bind. The modifier release is detected compositor-side
 Requirements: Omarchy 4.x (omarchy-shell), Hyprland with the Lua config, and a
 Quickshell build with `ScreencopyView` (the one Omarchy ships).
 
+## Remove
+
+```bash
+~/.config/omarchy/plugins/io.github.woogy7.workspaces/switcher-config bar off   # drop the bar icon
+~/.config/omarchy/plugins/io.github.woogy7.workspaces/install-menu --remove     # drop the Setup menu block
+omarchy plugin remove io.github.woogy7.workspaces
+```
+
+Then delete the Workspace Switcher block from `~/.config/hypr/bindings.lua` and
+reload Hyprland; the plugin's entry in `shell.json` goes away with the plugin.
+Nothing else is written anywhere: settings live in `~/.config/omarchy/shell.json`
+(only on your explicit `set`/menu actions), the menu block sits between marker
+comments in `~/.config/omarchy/extensions/omarchy-menu.jsonc` (only when you run
+`install-menu`), and the keybindings are pasted by you.
+
 ## Use
 
 **Hold-to-switch (`Alt+Tab`):** what a *lone* tap does (press, release without
