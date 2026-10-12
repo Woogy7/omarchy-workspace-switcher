@@ -40,6 +40,9 @@ Item {
   property real openedAt: 0
   property int cycleCount: 0
   property string holdModifier: "super"   // name shown in the hint; from payload "modifier"
+  // Screen the overlay maps on: the focused monitor, captured at open so the
+  // window doesn't hop screens while it is up.
+  property var targetScreen: null
 
   readonly property string pluginId: manifest && manifest.id ? String(manifest.id) : "io.github.woogy7.workspaces"
   readonly property string stateHome: Quickshell.env("HOME") + "/.local/state"
@@ -248,6 +251,7 @@ Item {
     root.openedAt = Date.now()
     root.cycleCount = 0
     if (step !== 0) root.cycleSelection(step)
+    root.targetScreen = root.focusedScreen()
     root.presented = true
     root.opened = true
     Qt.callLater(function() {
@@ -255,6 +259,15 @@ Item {
       ribbon.positionViewAtIndex(root.selectedIndex, ListView.Center)
       keyCatcher.forceActiveFocus()
     })
+  }
+
+  function focusedScreen() {
+    var mon = Hyprland.focusedMonitor
+    var screens = Quickshell.screens
+    for (var i = 0; mon && i < screens.length; i++) {
+      if (screens[i].name === mon.name) return screens[i]
+    }
+    return screens.length > 0 ? screens[0] : null
   }
 
   // Switch relative to the current workspace without showing the ribbon.
@@ -362,6 +375,7 @@ Item {
   PanelWindow {
     id: panel
     visible: root.presented
+    screen: root.targetScreen
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
     WlrLayershell.namespace: "omarchy-workspace-ribbon"
