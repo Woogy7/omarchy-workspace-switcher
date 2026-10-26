@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Hyprland
 import qs.Commons
@@ -47,13 +48,43 @@ Item {
 
   // ------------------------------------------------------------ settings
 
-  readonly property var settings: {
-    var cfg = root.shell && root.shell.shellConfig ? root.shell.shellConfig : null
+  // Omarchy 4.5 hands third-party overlays a scoped shell API with no
+  // `shellConfig`, so read this plugin's entry straight from the watched
+  // user shell.json; fall back to the injected shell config on older shells.
+  readonly property string userShellJsonPath: Quickshell.env("HOME") + "/.config/omarchy/shell.json"
+  property bool shellJsonLoaded: false
+  property var fileEntry: ({})
+
+  function entryFromConfig(cfg) {
     var list = cfg && Array.isArray(cfg.plugins) ? cfg.plugins : []
     for (var i = 0; i < list.length; i++) {
       if (list[i] && String(list[i].id) === root.pluginId) return list[i]
     }
-    return ({})
+    return null
+  }
+
+  FileView {
+    id: shellJsonView
+    path: root.userShellJsonPath
+    watchChanges: true
+    printErrors: false
+    onLoaded: {
+      root.shellJsonLoaded = true
+      var found = null
+      try { found = root.entryFromConfig(JSON.parse(text())) } catch (e) { found = null }
+      root.fileEntry = found || {}
+    }
+    onLoadFailed: function(error) {
+      root.shellJsonLoaded = false
+      root.fileEntry = {}
+    }
+    onFileChanged: reload()
+  }
+
+  readonly property var settings: {
+    if (root.shellJsonLoaded) return root.fileEntry
+    var cfg = root.shell && root.shell.shellConfig ? root.shell.shellConfig : null
+    return root.entryFromConfig(cfg) || {}
   }
 
   function setting(key, fallback) {
@@ -100,8 +131,11 @@ Item {
   // ------------------------------------------------------------ theme
 
   // Shares the image-picker surface so themes that style the theme/background
-  // picker style the ribbon too.
-  property color scrim: Color.imagePicker.scrim
+  // picker style the ribbon too. Omarchy 4.5 dropped [image-picker] scrim in
+  // favour of an unbacked picker, so fall back to the menu dim layer there.
+  property color scrim: Color.imagePicker.scrim !== undefined
+    ? Color.imagePicker.scrim
+    : Color.menu.scrim
   property color foreground: Color.imagePicker.text
   property color selectedBorder: Color.imagePicker.selectedBorder
   property color unselectedBorder: Color.imagePicker.unselectedBorder
